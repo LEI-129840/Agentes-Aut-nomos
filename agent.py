@@ -97,3 +97,37 @@ def ingest(folder: str) -> int:
     #    return len(documents)
     
     raise NotImplementedError("Add document processing, chunking, embeddings, and index storage.")
+
+#Funcionalidade 1
+
+def main() -> None:
+    print("Agente pronto. Comandos: /reset, /ingest <pasta>, /sair")
+    while True:
+        try:
+            texto = input("\nTu> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+
+        if not texto:
+            continue
+        if texto == "/sair":
+            break
+
+        try:
+            if texto == "/reset":
+                reset()
+                print("Memória limpa.")
+            elif texto.startswith("/ingest"):
+                pasta = texto[len("/ingest"):].strip()
+                if not pasta:
+                    print("Uso: /ingest <pasta>")
+                else:
+                    print(f"{ingest(pasta)} ficheiro(s) indexado(s).")
+            else:
+                print("Agente>", answer(texto))
+        except Exception as erro:
+            print(f"[erro] {erro}")
+
+if __name__ == "__main__":
+    main()
