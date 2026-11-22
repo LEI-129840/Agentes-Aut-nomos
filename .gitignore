@@ -1,0 +1,10 @@
+.env
+.venv/
+agent_data/
+__pycache__/
+.DS_Store
+.env
+.venv/
+agent_data/
+__pycache__/
+.DS_Store

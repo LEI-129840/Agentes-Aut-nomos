@@ -1,6 +1,11 @@
 # DO NOT CHANGE THE NAME OF THIS FILE
 import os
 from pathlib import Path
+import re
+from dotenv import load_dotenv
+from langchain_ollama import ChatOllama
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 # THE FOLLOWING TWO LINES SHOULD NOT BE CHANGED.
@@ -11,6 +16,28 @@ from pathlib import Path
 STORAGE_DIR = Path(os.environ.get("AGENT_STORAGE_DIR", "./agent_data")).resolve()
 SESSION_ID = os.environ.get("AGENT_SESSION_ID", "default")
 
+CHAT_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
+llm = None
+
+def get_llm() -> ChatOllama:
+    global llm
+    if llm is None:
+        llm = ChatOllama(
+            model= CHAT_MODEL,
+            base_url=os.environ["OLLAMA_BASE_URL"],
+            temperature=0.3,
+            client_kwargs={"headers": {"Authorization": f"Bearer {os.environ['OLLAMA_API_KEY']}"
+                        }},
+                    )
+    return llm 
+
+def chat(messages: list) -> str:
+    response = get_llm().invoke(messages)
+    text = response.content if isinstance(response.content, str) else ""
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip() #serve para remover os blocos "<think>.*?</think>" que podem vir do qwen3
+    if not text:
+        raise RuntimeError("O modelo devolveu resposta vazia")
+    return text
 
 def answer(prompt: str) -> str:
     """Return the final answer to ONE user message, as a nonempty string.
@@ -27,7 +54,8 @@ def answer(prompt: str) -> str:
 
     # YOUR IMPLEMENTATION STARTS HERE.
 
-    return "MOCK ANSWER: replace this response with your agent's answer."
+    return chat([{"role": "system", "content": "És um assistente útil. Responde em português de Portugal"},
+                {"role": "user", "content": prompt},])
 
 
 def reset() -> None:
